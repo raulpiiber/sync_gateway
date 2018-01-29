@@ -105,14 +105,17 @@ func NewServerContext(config *ServerConfig) *ServerContext {
 			go func() {
 				// TODO: See issue #3247 - This should be a retry loop,
 				// or triggered via callback mechansm when REST API is ready.
-				//Delay the start of the replication if its a oneshot that
-				//uses a localdb reference to allow the REST API's to come up
+				// Delay the start of the replication if its a oneshot that
+				// uses a localdb reference to allow the REST API's to come up.
 				if params.Lifecycle == sgreplicate.ONE_SHOT && localdb {
 					base.Warn("Delaying start of local database one-shot replication, source %v, target %v for %v seconds", params.SourceDb, params.TargetDb, kOneShotLocalDbReplicateWait)
 					time.Sleep(kOneShotLocalDbReplicateWait)
 				}
-				//Run single replication, cancel parameter will always be false
-				sc.replicator.Replicate(params, false)
+				// Run single replication, cancel parameter will always be false
+				_, err := sc.replicator.Replicate(params, false)
+				if err != nil {
+					base.Warn("Error starting replication: ID: %v, source %v, target %v: err: %v", params.ReplicationId, params.SourceDb, params.TargetDb, err)
+				}
 			}()
 		}
 
