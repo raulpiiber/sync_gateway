@@ -101,14 +101,17 @@ func NewServerContext(config *ServerConfig) *ServerContext {
 			//to avoid blocking server startup
 			params.Async = true
 
-			//Run single replication, cancel parameter will always be false
+			// Running in a goroutine to avoid blocking server startup with sleep in the if block.
 			go func() {
+				// TODO: See issue #3247 - This should be a retry loop,
+				// or triggered via callback mechansm when REST API is ready.
 				//Delay the start of the replication if its a oneshot that
 				//uses a localdb reference to allow the REST API's to come up
 				if params.Lifecycle == sgreplicate.ONE_SHOT && localdb {
 					base.Warn("Delaying start of local database one-shot replication, source %v, target %v for %v seconds", params.SourceDb, params.TargetDb, kOneShotLocalDbReplicateWait)
 					time.Sleep(kOneShotLocalDbReplicateWait)
 				}
+				//Run single replication, cancel parameter will always be false
 				sc.replicator.Replicate(params, false)
 			}()
 		}
