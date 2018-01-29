@@ -40,8 +40,6 @@ func NewReplicator() *Replicator {
 }
 
 func (r *Replicator) Replicate(params sgreplicate.ReplicationParameters, isCancel bool) (task *ActiveTask, err error) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
 
 	replicationId, found := r.getReplicationForParams(params)
 
@@ -78,11 +76,15 @@ func (r *Replicator) ActiveTasks() (tasks []ActiveTask) {
 }
 
 func (r *Replicator) addReplication(rep sgreplicate.SGReplication, parameters sgreplicate.ReplicationParameters) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	r.replications[parameters.ReplicationId] = rep
 	r.replicationParams[parameters.ReplicationId] = parameters
 }
 
 func (r *Replicator) getReplication(repId string) sgreplicate.SGReplication {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
 	if rep, ok := r.replications[repId]; ok {
 		return rep
 	} else {
@@ -91,6 +93,8 @@ func (r *Replicator) getReplication(repId string) sgreplicate.SGReplication {
 }
 
 func (r *Replicator) getReplicationParams(repId string) sgreplicate.ReplicationParameters {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
 	if params, ok := r.replicationParams[repId]; ok {
 		return params
 	} else {
@@ -99,6 +103,8 @@ func (r *Replicator) getReplicationParams(repId string) sgreplicate.ReplicationP
 }
 
 func (r *Replicator) getReplicationForParams(queryParams sgreplicate.ReplicationParameters) (replicationId string, found bool) {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
 
 	// Iterate over the known replications looking for a match
 	for knownReplicationId, _ := range r.replications {
@@ -119,6 +125,8 @@ func (r *Replicator) getReplicationForParams(queryParams sgreplicate.Replication
 }
 
 func (r *Replicator) removeReplication(repId string) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	delete(r.replications, repId)
 	delete(r.replicationParams, repId)
 }
@@ -236,8 +244,6 @@ func (r *Replicator) populateActiveTaskFromReplication(replication sgreplicate.S
 }
 
 func (r *Replicator) StopReplications() error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
 
 	// Get the replication id's in a separate method call to avoid trying to grab the lock in a
 	// nested fashion.  When r.stopReplication() is called, no locks on r will be held.
