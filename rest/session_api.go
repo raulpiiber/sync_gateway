@@ -19,7 +19,7 @@ import (
 	"github.com/couchbase/sync_gateway/db"
 )
 
-const kDefaultSessionTTL = 24 * time.Hour
+const kDefaultSessionTTL = 24 * 30 * time.Hour
 
 // Respond with a JSON struct containing info about the current login session
 func (h *handler) respondWithSessionInfo() error {
