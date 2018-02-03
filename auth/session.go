@@ -16,7 +16,7 @@ import (
 	"github.com/couchbase/sync_gateway/base"
 )
 
-const kDefaultSessionTTL = 24 * time.Hour
+const kDefaultSessionTTL = 24 * 30 * time.Hour
 
 // A user login session (used with cookie-based auth.)
 type LoginSession struct {

@@ -91,7 +91,7 @@ const funcWrapper = `
 				if (x.forbidden)
 				reject(403, x.forbidden);
 				else if (x.unauthorized)
-				reject(401, x.unauthorized);
+				reject(400, x.unauthorized);
 				else
 				throw(x);
 			}
